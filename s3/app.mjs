@@ -1,44 +1,50 @@
-const AWS = require("aws-sdk");
-const ses = new AWS.SES();
+// Import AWS SDK v3 clients
+const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
+const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+
+const sesClient = new SESClient({ region: "us-east-1" });
+const s3Client = new S3Client({ region: "us-east-1" });
 
 exports.handler = async (event) => {
+  console.log("S3 delete event: ", JSON.stringify(event, null, 2));
+
   const bucketName = process.env.BUCKET_NAME;
-  const destEmail = process.env.DEST_EMAIL;
-
-  // Extract object information from the event
-  const records = event.Records;
-  const deletedFiles = records.map((record) => record.s3.object.key);
-
-  // Email subject and body
-  const emailSubject = `Object Deleted from S3 Bucket: ${bucketName}`;
-  const emailBody =
-    `The list of objects were deleted in bucket ${bucketName} with the prefix /img are:\n\n` +
-    deletedFiles.join("\n");
-
-  // SES Email parameters
-  const params = {
-    Destination: {
-      ToAddresses: [destEmail],
-    },
-    Message: {
-      Body: {
-        Text: { Data: emailBody },
-      },
-      Subject: { Data: emailSubject },
-    },
-    Source: destEmail,
-  };
-
+  const destinationEmail = process.env.DEST_EMAIL;
+  
   try {
-    await ses.sendEmail(params).promise();
-    console.log("Email sent successfully.");
-  } catch (error) {
-    console.error("Error sending email:", error);
-    throw new Error("Failed to send email");
-  }
+    const s3Record = event.Records[0].s3;
+    const objectKey = s3Record.object.key;
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ message: "Email sent successfully" }),
-  };
+    // Check if the file deleted has the `/img` prefix
+    if (!objectKey.startsWith('img/')) {
+      console.log(`Object ${objectKey} does not match the '/img' prefix.`);
+      return;
+    }
+
+    // Prepare SES email content
+    const emailParams = {
+      Destination: {
+        ToAddresses: [destinationEmail],
+      },
+      Message: {
+        Body: {
+          Text: {
+            Data: `An object with key ${objectKey} was deleted from the S3 bucket ${bucketName}.`,
+          },
+        },
+        Subject: {
+          Data: "S3 Object Deleted",
+        },
+      },
+      Source: "nischith.212@gmail.com", 
+    };
+
+    // Send email using SES
+    const sendEmailCommand = new SendEmailCommand(emailParams);
+    const response = await sesClient.send(sendEmailCommand);
+    console.log("Email sent successfully: ", response);
+
+  } catch (error) {
+    console.error("Error processing S3 delete event: ", error);
+  }
 };
