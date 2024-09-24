@@ -1,28 +1,13 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: "AWS::Serverless-2016-10-31"
-Description: Sends an email when an object with prefix '/img' is deleted from the S3 bucket `s3testing81938387`.
+Description: Sends an email when an object with prefix '/img' is deleted from the S3 bucket.
 
 Resources:
-  # S3 Bucket
-  rawUploads:
-    Type: "AWS::S3::Bucket"
-    Properties:
-      BucketName: s3testing81938387
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: "s3:ObjectRemoved:*"
-            Function: !GetAtt S3DeleteNotificationFunction.Arn
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: prefix
-                    Value: img/
-
-  # Lambda Function
   S3DeleteNotificationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
+      CodeUri: ./s3
+      Handler: app.handler
       Runtime: nodejs18.x
       Timeout: 10
       MemorySize: 128
@@ -30,13 +15,13 @@ Resources:
         - AmazonS3FullAccess
         - AmazonSESFullAccess
       Environment:
-        BUCKET_NAME: s3testing81938387
-        DEST_EMAIL: "nischith.818@gmail.com"
+        Variables:
+          DEST_EMAIL: "nischith.818@gmail.com"
       Events:
         S3DeleteEvent:
           Type: S3
           Properties:
-            Bucket: !Ref rawUploads
+            Bucket: !Ref ImagesBucket
             Events:
               - s3:ObjectRemoved:*
             Filter:
@@ -45,16 +30,7 @@ Resources:
                   - Name: prefix
                     Value: img/
 
-  # Permission for the Lambda function to be triggered by the S3 bucket
-  S3DeleteNotificationFunctionPermission:
-    Type: AWS::Lambda::Permission
+  ImagesBucket:
+    Type: "AWS::S3::Bucket"
     Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref S3DeleteNotificationFunction
-      Principal: s3.amazonaws.com
-      SourceArn: !GetAtt rawUploads.Arn
-
-Outputs:
-  BucketName:
-    Value: s3testing81938387
-    Description: The S3 bucket name
+      BucketName: s3testing8193838792

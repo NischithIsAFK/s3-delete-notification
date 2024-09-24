@@ -10,7 +10,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_SESSION_TOKEN: ${{secrets.AWS_SESSION_TOKEN}}
   AWS_REGION: us-east-1
-  STACK_NAME: s3-delete-notification
+  STACK_NAME: s3-del-notification
 
 permissions:
   contents: read
