@@ -21,12 +21,12 @@ Resources:
       Environment:
         Variables:
           BUCKET_NAME: !Ref S3Bucket
-          DEST_EMAIL: "your_email@example.com"  # Update with your email
+          DEST_EMAIL: "your_email@example.com" # Update with your email
       Events:
         S3DeleteEvent:
           Type: S3
           Properties:
-            Bucket: !Ref S3Bucket  # Reference the same S3 bucket
+            Bucket: !Ref S3Bucket # Reference the same S3 bucket
             Events:
               - s3:ObjectRemoved:*
             Filter:
@@ -34,6 +34,14 @@ Resources:
                 Rules:
                   - Name: prefix
                     Value: img/
+
+  S3BucketNotificationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt S3DeleteNotificationFunction.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub arn:aws:s3:::${S3Bucket}
 
 Outputs:
   BucketName:
