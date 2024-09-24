@@ -10,7 +10,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_SESSION_TOKEN: ${{secrets.AWS_SESSION_TOKEN}}
   AWS_REGION: us-east-1
-  STACK_NAME: s3-delete-notification
+  STACK_NAME: s3-dele-notification
 
 permissions:
   contents: read
@@ -56,6 +56,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
         run: |
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset \
+          --resolve-s3 \
           --stack-name ${{ env.STACK_NAME }} \
           --region ${{ env.AWS_REGION }} \
           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND

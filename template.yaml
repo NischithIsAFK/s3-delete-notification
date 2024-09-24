@@ -1,41 +1,36 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: >
-  s3-delete-noti
-
-  Sample SAM Template for s3-delete-noti
-  
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-Globals:
-  Function:
-    Timeout: 3
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: Sends an email when an object with prefix '/img' is deleted from the S3 bucket.
 
 Resources:
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  S3DeleteNotificationFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3/
-      Handler: app.lambdaHandler
+      CodeUri: ./s3
+      Handler: app.handler
       Runtime: nodejs18.x
-      Architectures:
-        - x86_64
+      Timeout: 10
+      MemorySize: 128
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonSESFullAccess
+      Environment:
+        Variables:
+          DEST_EMAIL: "nischith.818@gmail.com"
       Events:
-        HelloWorld:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+        S3DeleteEvent:
+          Type: S3
           Properties:
-            Path: /hello
-            Method: get
+            Bucket: !Ref ImagesBucket
+            Events:
+              - s3:ObjectRemoved:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: img/
 
-Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  ImagesBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: s3testing8193838792
