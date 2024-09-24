@@ -1,13 +1,24 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Transform: AWS::Serverless-2016-10-31
+Transform: "AWS::Serverless-2016-10-31"
 Description: Sends an email when an object with prefix '/img' is deleted from the S3 bucket `s3testing81938387`.
 
 Resources:
-  S3Bucket:
-    Type: AWS::S3::Bucket
+  # S3 Bucket
+  rawUploads:
+    Type: "AWS::S3::Bucket"
     Properties:
       BucketName: s3testing81938387
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: "s3:ObjectRemoved:*"
+            Function: !GetAtt S3DeleteNotificationFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: img/
 
+  # Lambda Function
   S3DeleteNotificationFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -19,14 +30,13 @@ Resources:
         - AmazonS3FullAccess
         - AmazonSESFullAccess
       Environment:
-        Variables:
-          BUCKET_NAME: !Ref S3Bucket
-          DEST_EMAIL: "your_email@example.com" # Update with your email
+        BUCKET_NAME: s3testing81938387
+        DEST_EMAIL: "nischith.818@gmail.com"
       Events:
         S3DeleteEvent:
           Type: S3
           Properties:
-            Bucket: !Ref S3Bucket # Reference the same S3 bucket
+            Bucket: !Ref rawUploads
             Events:
               - s3:ObjectRemoved:*
             Filter:
@@ -35,15 +45,16 @@ Resources:
                   - Name: prefix
                     Value: img/
 
-  S3BucketNotificationPermission:
+  # Permission for the Lambda function to be triggered by the S3 bucket
+  S3DeleteNotificationFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt S3DeleteNotificationFunction.Arn
+      FunctionName: !Ref S3DeleteNotificationFunction
       Principal: s3.amazonaws.com
-      SourceArn: !Sub arn:aws:s3:::${S3Bucket}
+      SourceArn: !GetAtt rawUploads.Arn
 
 Outputs:
   BucketName:
-    Value: !Ref S3Bucket
-    Description: s3 bucket
+    Value: s3testing81938387
+    Description: The S3 bucket name
