@@ -1,12 +1,17 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Sends an email when an object with prefix '/img' is deleted from an S3 bucket.
+Description: Sends an email when an object with prefix '/img' is deleted from the S3 bucket `s3testing81938387`.
 
 Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: s3testing81938387
+
   S3DeleteNotificationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: app.handler
+      Handler: index.handler
       Runtime: nodejs18.x
       Timeout: 10
       MemorySize: 128
@@ -15,13 +20,13 @@ Resources:
         - AmazonSESFullAccess
       Environment:
         Variables:
-          BUCKET_NAME: s3testing81938387
-          DEST_EMAIL: "nischith.818@gmail.com"
+          BUCKET_NAME: !Ref S3Bucket
+          DEST_EMAIL: "your_email@example.com"  # Update with your email
       Events:
         S3DeleteEvent:
           Type: S3
           Properties:
-            Bucket: s3testing81938387
+            Bucket: !Ref S3Bucket  # Reference the same S3 bucket
             Events:
               - s3:ObjectRemoved:*
             Filter:
@@ -32,5 +37,5 @@ Resources:
 
 Outputs:
   BucketName:
-    Value: s3testing81938387
+    Value: !Ref S3Bucket
     Description: The S3 bucket name
