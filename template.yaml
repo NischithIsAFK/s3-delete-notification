@@ -33,4 +33,4 @@ Resources:
   ImagesBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: s3testing8193838792
+      BucketName: s3testing81938387921
