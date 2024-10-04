@@ -6,8 +6,15 @@
   "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
   "author": "SAM CLI",
   "license": "MIT",
+  "scripts": {
+    "test": "jest --coverage"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.657.0",
     "@aws-sdk/client-ses": "^3.654.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "sonarqube-scanner": "^4.2.3"
   }
 }
