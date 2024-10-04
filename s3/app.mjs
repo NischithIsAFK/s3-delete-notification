@@ -1,15 +1,14 @@
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 
-const sesClient = new SESClient({ region: "us-east-1" }); // Change the region if necessary
+const sesClient = new SESClient({ region: "us-east-1" });
 
-export const handler = async (event) => {
+exports.handler = async (event) => {
   const { Records } = event;
 
   for (const record of Records) {
     const bucketName = record.s3.bucket.name;
     const objectKey = record.s3.object.key;
 
-    // Construct the email parameters
     const params = {
       Destination: {
         ToAddresses: [process.env.DEST_EMAIL],
@@ -22,7 +21,7 @@ export const handler = async (event) => {
         },
         Subject: { Data: "S3 Object Deleted Notification" },
       },
-      Source: "nischith.212@gmail.com", // Use a verified email in SES
+      Source: "nischith.212@gmail.com",
     };
 
     try {
